@@ -1,0 +1,108 @@
+package www
+
+import (
+    "strings"
+
+    "chat-room/data"
+)
+
+templ Index() {
+    @HTML() {
+        <section class="container-md pt-5 min-vh-100">
+            <header class="mb-4 d-flex justify-content-between">
+                <h1 class="my-auto">{GetPageTitle(ctx)}</h1>
+                <div class="my-auto">
+                    if username, ok := GetUserName(ctx); ok {
+                        @UserComponent(username)
+                    } else {
+                        @userForm(nil)
+                    }
+                </div>
+            </header>
+            <main class="shadow shadow-sm d-flex flex-column mb-4 gap-3"
+                hx-ext="sse, debug" sse-connect="/chat-stream" sse-close="close" sse-swap="message" hx-swap="beforeend"
+                >
+            </main>
+            @messageForm(nil)
+        </section>
+    }
+}
+
+type messageFormParams struct {
+    Error error
+    Message string
+    MessageError error
+}
+
+templ messageForm(params *messageFormParams) {
+    <form hx-ext="response-targets" hx-post="/post" hx-target="this" hx-target-4*="this" class={"input-group"} hx-swap="outerHTML">
+        <div class="form-floating">
+            <textarea class={"form-control", "border-primary", "textarea-auto-grow",
+                templ.KV("is-invalid", params != nil && params.MessageError != nil)
+            } placeholder="Leave a comment here" id="message" name="message" style="resize: none">
+            if params != nil {
+                {params.Message}
+            }
+            </textarea>
+            <label for="message">Message</label>
+            if params != nil && params.MessageError != nil {
+                <div class="invalid-tooltip">
+                    {params.MessageError.Error()}
+                </div>
+            }
+        </div>
+        <button type="submit" class={"btn btn-primary align-text-top", templ.KV("is-invalid", params != nil && params.Error != nil)}>Post</button>
+        if params != nil && params.Error != nil {
+            <div class="invalid-tooltip end-0">
+                {params.Error.Error()}
+            </div>
+        }
+    </form>
+}
+
+templ UserComponent(username string) {
+    <em>Hello {username}</em>
+}
+
+templ MessageRows(msgs []data.UserMessage) {
+    for _, msg := range msgs {
+        @MessageRow(msg)
+    }
+}
+
+templ MessageRow(msg data.UserMessage) {
+    <div class={"d-flex", "flex-row", templ.KV("justify-content-end", IsCurrentUser(ctx, msg.UserName))}>
+        @MessageCard(msg)
+    </div>
+}
+
+templ MessageCard(msg data.UserMessage) {
+<article class={"card", "flex-fill",
+    templ.KV("text-bg-secondary", !IsCurrentUser(ctx, msg.UserName)),
+    templ.KV("text-bg-primary", IsCurrentUser(ctx, msg.UserName))}
+style="max-width: 75%; min-width: 30%; width: fit-content">
+<header class="card-header">{msg.UserName}</header>
+    <div class="card-body">
+        for _, line := range strings.FieldsFunc(msg.Message, isNewLine) {
+            <p>{line}</p>
+        }
+    </div>
+</article>
+}
+
+func isNewLine(r rune) bool {
+    return r == '\n' || r == '\r'
+}
+
+type userFormParams struct {
+	Error error
+    NameError error
+}
+
+templ userForm(params *userFormParams) {
+    <form hx-post="/enter" hx-target-4*="this" hx-target="this" class="input-group">
+        <label for="name" class="input-group-text">Name: </label>
+        <input type="text" id="name" name="name" class="form-control">
+        <button type="submit" class="btn btn-outline-secondary">Enter</button>
+    </form>
+}

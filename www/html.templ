@@ -1,0 +1,23 @@
+package www
+
+templ HTML() {
+    <!doctype html>
+    <html lang={GetPageLanguage(ctx)} data-bs-theme={GetPreferredColorSchema(ctx)}>
+    <head>
+        <title>{GetPageTitle(ctx)}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.css" rel="stylesheet" crossorigin="anonymous"/>
+        <script defer src="https://unpkg.com/bootstrap@5.3.3/dist/js/bootstrap.bundle.js" crossorigin="anonymous"></script>
+        <script defer src="https://unpkg.com/htmx.org@2.0.0-beta1/dist/htmx.js" crossorigin="anonymous"></script>
+        <script defer src="https://unpkg.com/htmx-ext-sse@2.0.0/sse.js" crossorigin="anonymous"></script>
+        <script defer src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js" crossorigin="anonymous"></script>
+        <script defer src="https://unpkg.com/htmx-ext-debug@2.0.0/debug.js" crossorigin="anonymous"></script>
+        <script defer src="/static/script.js"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+    </head>
+    <body >
+    {children...}
+    </body>
+    </html>
+}
